@@ -3,11 +3,12 @@ module github.com/petewall/eink-radiator-image-source-text
 go 1.19
 
 require (
+	github.com/fogleman/gg v1.3.0
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0
 	github.com/google/pprof v0.0.0-20221103000818-d260c55eee4c
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/onsi/ginkgo/v2 v2.4.0
-	github.com/onsi/gomega v1.23.0
+	github.com/onsi/gomega v1.24.0
 	github.com/petewall/eink-radiator-image-source-blank v0.1.17
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.13.0
@@ -17,7 +18,6 @@ require (
 )
 
 require (
-	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
