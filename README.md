@@ -1,5 +1,7 @@
 # eInk Radiator Image Source: Text
 
+![CI](https://ci.petewall.net/api/v1/teams/main/pipelines/eink-radiator/jobs/test-image-source-text/badge)
+
 Generates an image from text.
 
 ```bash
