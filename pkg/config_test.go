@@ -44,7 +44,11 @@ var _ = Describe("Config", func() {
 	Describe("GenerateImage", func() {
 		It("generates an image", func() {
 			config := &pkg.Config{
-				Text: "It is now safe to turn off your computer",
+				Text:  "It is now safe to turn off your computer",
+				Color: "black",
+				Background: pkg.BackgroundType{
+					Color: "white",
+				},
 			}
 			img, err := config.GenerateImage(300, 200)
 			Expect(err).ToNot(HaveOccurred())
@@ -152,21 +156,59 @@ var _ = Describe("ParseConfig", func() {
 		})
 	})
 
-	// Commented out because there's no invalid format at the moment
-	// When("the config file has invalid data", func() {
-	// 	BeforeEach(func() {
-	// 		config := pkg.Config{
-	// 			Text: "",
-	// 		}
-	// 		var err error
-	// 		configFileContents, err = json.Marshal(config)
-	// 		Expect(err).ToNot(HaveOccurred())
-	// 	})
+	When("the config file has missing data", func() {
+		BeforeEach(func() {
+			config := pkg.Config{
+				Text: "",
+			}
+			var err error
+			configFileContents, err = json.Marshal(config)
+			Expect(err).ToNot(HaveOccurred())
+		})
 
-	// 	It("returns an error", func() {
-	// 		_, err := pkg.ParseConfig(configFile.Name())
-	// 		Expect(err).To(HaveOccurred())
-	// 		Expect(err.Error()).To(Equal("config file is not valid: scale value is invalid: \"zelda\", must be one of resize, contain, cover"))
-	// 	})
-	// })
+		It("returns an error", func() {
+			_, err := pkg.ParseConfig(configFile.Name())
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("config file is not valid: missing text"))
+		})
+	})
+
+	When("the config file has invalid color", func() {
+		BeforeEach(func() {
+			config := pkg.Config{
+				Text:  "what",
+				Color: "the golf",
+			}
+			var err error
+			configFileContents, err = json.Marshal(config)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns an error", func() {
+			_, err := pkg.ParseConfig(configFile.Name())
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("config file is not valid: unknown color: \"the golf\""))
+		})
+	})
+
+	When("the config file has invalid background color", func() {
+		BeforeEach(func() {
+			config := pkg.Config{
+				Text:  "shoes",
+				Color: "blue",
+				Background: pkg.BackgroundType{
+					Color: "suede",
+				},
+			}
+			var err error
+			configFileContents, err = json.Marshal(config)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns an error", func() {
+			_, err := pkg.ParseConfig(configFile.Name())
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(Equal("config file is not valid: invalid background: unknown color: \"suede\""))
+		})
+	})
 })
