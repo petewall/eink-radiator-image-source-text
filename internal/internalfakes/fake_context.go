@@ -33,6 +33,18 @@ type FakeContext struct {
 	imageReturnsOnCall map[int]struct {
 		result1 image.Image
 	}
+	LoadFontFaceStub        func(string, float64) error
+	loadFontFaceMutex       sync.RWMutex
+	loadFontFaceArgsForCall []struct {
+		arg1 string
+		arg2 float64
+	}
+	loadFontFaceReturns struct {
+		result1 error
+	}
+	loadFontFaceReturnsOnCall map[int]struct {
+		result1 error
+	}
 	SetColorStub        func(color.Color)
 	setColorMutex       sync.RWMutex
 	setColorArgsForCall []struct {
@@ -134,6 +146,68 @@ func (fake *FakeContext) ImageReturnsOnCall(i int, result1 image.Image) {
 	}{result1}
 }
 
+func (fake *FakeContext) LoadFontFace(arg1 string, arg2 float64) error {
+	fake.loadFontFaceMutex.Lock()
+	ret, specificReturn := fake.loadFontFaceReturnsOnCall[len(fake.loadFontFaceArgsForCall)]
+	fake.loadFontFaceArgsForCall = append(fake.loadFontFaceArgsForCall, struct {
+		arg1 string
+		arg2 float64
+	}{arg1, arg2})
+	stub := fake.LoadFontFaceStub
+	fakeReturns := fake.loadFontFaceReturns
+	fake.recordInvocation("LoadFontFace", []interface{}{arg1, arg2})
+	fake.loadFontFaceMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeContext) LoadFontFaceCallCount() int {
+	fake.loadFontFaceMutex.RLock()
+	defer fake.loadFontFaceMutex.RUnlock()
+	return len(fake.loadFontFaceArgsForCall)
+}
+
+func (fake *FakeContext) LoadFontFaceCalls(stub func(string, float64) error) {
+	fake.loadFontFaceMutex.Lock()
+	defer fake.loadFontFaceMutex.Unlock()
+	fake.LoadFontFaceStub = stub
+}
+
+func (fake *FakeContext) LoadFontFaceArgsForCall(i int) (string, float64) {
+	fake.loadFontFaceMutex.RLock()
+	defer fake.loadFontFaceMutex.RUnlock()
+	argsForCall := fake.loadFontFaceArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeContext) LoadFontFaceReturns(result1 error) {
+	fake.loadFontFaceMutex.Lock()
+	defer fake.loadFontFaceMutex.Unlock()
+	fake.LoadFontFaceStub = nil
+	fake.loadFontFaceReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeContext) LoadFontFaceReturnsOnCall(i int, result1 error) {
+	fake.loadFontFaceMutex.Lock()
+	defer fake.loadFontFaceMutex.Unlock()
+	fake.LoadFontFaceStub = nil
+	if fake.loadFontFaceReturnsOnCall == nil {
+		fake.loadFontFaceReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.loadFontFaceReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeContext) SetColor(arg1 color.Color) {
 	fake.setColorMutex.Lock()
 	fake.setColorArgsForCall = append(fake.setColorArgsForCall, struct {
@@ -173,6 +247,8 @@ func (fake *FakeContext) Invocations() map[string][][]interface{} {
 	defer fake.drawStringWrappedMutex.RUnlock()
 	fake.imageMutex.RLock()
 	defer fake.imageMutex.RUnlock()
+	fake.loadFontFaceMutex.RLock()
+	defer fake.loadFontFaceMutex.RUnlock()
 	fake.setColorMutex.RLock()
 	defer fake.setColorMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

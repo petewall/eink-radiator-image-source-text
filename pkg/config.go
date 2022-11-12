@@ -27,12 +27,24 @@ type Config struct {
 	Text       string         `json:"text" yaml:"text"`
 	Color      string         `json:"color" yaml:"color"`
 	Background BackgroundType `json:"background" yaml:"background"`
+	Font       string         `json:"font,omitempty" yaml:"font,omitempty"`
+	Size       float64        `json:"size,omitempty" yaml:"size,omitempty"`
 }
 
 func (c *Config) GenerateImage(width, height int) (image.Image, error) {
 	background := internal.MakeBackground(width, height, c.Background.Color)
 	context := internal.NewContext(background)
 	context.SetColor(colornames.Map[c.Color])
+
+	font, err := internal.FindFont(c.Font)
+	if err != nil {
+		return nil, fmt.Errorf("could not find font \"%s\": %w", c.Font, err)
+	}
+
+	err = context.LoadFontFace(font, c.Size)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set font \"%s\" %.1f: %w", c.Font, c.Size, err)
+	}
 	context.DrawStringWrapped(c.Text, float64(width/2), float64(height/2), 0.5, 0.5, float64(width), 1.0, gg.AlignCenter)
 	return context.Image(), nil
 }
@@ -72,6 +84,14 @@ func ParseConfig(path string) (*Config, error) {
 
 	if config.Background.Color == "" {
 		config.Background.Color = "white"
+	}
+
+	if config.Font == "" {
+		config.Font = "Arial"
+	}
+
+	if config.Size == 0 {
+		config.Size = 48
 	}
 
 	err = config.Validate()

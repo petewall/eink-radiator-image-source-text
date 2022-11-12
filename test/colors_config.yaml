@@ -1,6 +1,8 @@
 text: |-
-  Shield up!
+  Shields up!
   Rrrrrred Alert!
 color: red
 background:
   color: black
+font: NewYork
+size: 48

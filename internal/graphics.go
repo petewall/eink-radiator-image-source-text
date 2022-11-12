@@ -11,6 +11,7 @@ import (
 type Context interface {
 	Image() image.Image
 	DrawStringWrapped(s string, x, y, ax, ay, width, lineSpacing float64, align gg.Align)
+	LoadFontFace(path string, points float64) error
 	SetColor(c color.Color)
 }
 

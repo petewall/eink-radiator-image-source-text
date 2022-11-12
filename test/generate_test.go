@@ -46,7 +46,7 @@ var _ = Describe("Generate", func() {
 
 	Context("providing colors", func() {
 		It("generates an image using those colors", func() {
-			Run("generate --config colors_config.yaml --to-stdout --height 200 --width 200")
+			Run("generate --config colors_config.yaml --to-stdout --height 300 --width 300")
 			Eventually(CommandSession).WithTimeout(time.Second * 5).Should(Exit(0))
 
 			expectedData, err := os.ReadFile("colors_expected.png")

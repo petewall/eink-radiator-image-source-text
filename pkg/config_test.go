@@ -2,6 +2,7 @@ package pkg_test
 
 import (
 	"encoding/json"
+	"errors"
 	"image"
 	"os"
 
@@ -24,6 +25,7 @@ var _ = Describe("Config", func() {
 		returnedImage   *image.RGBA
 		makeBackground  *internalfakes.FakeBackgroundMaker
 		newContext      *internalfakes.FakeContextMaker
+		findFont        *internalfakes.FakeFontFinder
 	)
 
 	BeforeEach(func() {
@@ -37,6 +39,10 @@ var _ = Describe("Config", func() {
 		newContext.Returns(context)
 		internal.NewContext = newContext.Spy
 
+		findFont = &internalfakes.FakeFontFinder{}
+		findFont.Returns("/path/to/your/font.ttf", nil)
+		internal.FindFont = findFont.Spy
+
 		returnedImage = image.NewRGBA(image.Rect(0, 0, 300, 200))
 		context.ImageReturns(returnedImage)
 	})
@@ -49,6 +55,8 @@ var _ = Describe("Config", func() {
 				Background: pkg.BackgroundType{
 					Color: "white",
 				},
+				Font: "comic sans",
+				Size: 128,
 			}
 			img, err := config.GenerateImage(300, 200)
 			Expect(err).ToNot(HaveOccurred())
@@ -64,8 +72,18 @@ var _ = Describe("Config", func() {
 			By("writing the text", func() {
 				Expect(newContext.CallCount()).To(Equal(1))
 				Expect(newContext.ArgsForCall(0)).To(Equal(backgroundImage))
+
 				Expect(context.SetColorCallCount()).To(Equal(1))
 				Expect(context.SetColorArgsForCall(0)).To(Equal(colornames.Map["black"]))
+
+				Expect(findFont.CallCount()).To(Equal(1))
+				Expect(findFont.ArgsForCall(0)).To(Equal("comic sans"))
+
+				Expect(context.LoadFontFaceCallCount()).To(Equal(1))
+				fontPath, fontSize := context.LoadFontFaceArgsForCall(0)
+				Expect(fontPath).To(Equal("/path/to/your/font.ttf"))
+				Expect(fontSize).To(Equal(128.0))
+
 				Expect(context.DrawStringWrappedCallCount()).To(Equal(1))
 				text, x, y, ax, ay, width, lineSpacing, align := context.DrawStringWrappedArgsForCall(0)
 				Expect(text).To(Equal("It is now safe to turn off your computer"))
@@ -81,6 +99,46 @@ var _ = Describe("Config", func() {
 			By("returning the image", func() {
 				Expect(context.ImageCallCount()).To(Equal(1))
 				Expect(img).To(Equal(returnedImage))
+			})
+		})
+
+		When("finding the font fails", func() {
+			BeforeEach(func() {
+				findFont.Returns("", errors.New("find font failed"))
+			})
+			It("returns an error", func() {
+				config := &pkg.Config{
+					Text:  "It is now safe to turn off your computer",
+					Color: "black",
+					Background: pkg.BackgroundType{
+						Color: "white",
+					},
+					Font: "comic sans",
+					Size: 128,
+				}
+				_, err := config.GenerateImage(300, 200)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("could not find font \"comic sans\": find font failed"))
+			})
+		})
+
+		When("setting the font fails", func() {
+			BeforeEach(func() {
+				context.LoadFontFaceReturns(errors.New("load font face failed"))
+			})
+			It("returns an error", func() {
+				config := &pkg.Config{
+					Text:  "It is now safe to turn off your computer",
+					Color: "black",
+					Background: pkg.BackgroundType{
+						Color: "white",
+					},
+					Font: "comic sans",
+					Size: 128,
+				}
+				_, err := config.GenerateImage(300, 200)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("failed to set font \"comic sans\" 128.0: load font face failed"))
 			})
 		})
 	})
