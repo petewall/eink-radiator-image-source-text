@@ -41,6 +41,13 @@ func (c *Config) GenerateImage(width, height int) (image.Image, error) {
 		return nil, fmt.Errorf("could not find font \"%s\": %w", c.Font, err)
 	}
 
+	if c.Size == 0 {
+		c.Size, err = internal.FitText(context, c.Text, font, width, height)
+		if err != nil {
+			return nil, fmt.Errorf("could not fit font \"%s\": %w", c.Font, err)
+		}
+	}
+
 	err = context.LoadFontFace(font, c.Size)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set font \"%s\" %.1f: %w", c.Font, c.Size, err)
@@ -87,11 +94,7 @@ func ParseConfig(path string) (*Config, error) {
 	}
 
 	if config.Font == "" {
-		config.Font = "Arial"
-	}
-
-	if config.Size == 0 {
-		config.Size = 48
+		config.Font = "Ubuntu"
 	}
 
 	err = config.Validate()

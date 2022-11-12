@@ -34,6 +34,10 @@ endif
 	golangci-lint run
 
 test: deps-modules deps-ginkgo
+ifeq ($(PLATFORM), Linux)
+	mkdir -p ~/.fonts
+	cp fonts/ubuntu/*.ttf ~/.fonts
+endif
 	ginkgo -r .
 
 # #### BUILD ####

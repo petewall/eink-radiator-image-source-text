@@ -45,6 +45,33 @@ type FakeContext struct {
 	loadFontFaceReturnsOnCall map[int]struct {
 		result1 error
 	}
+	MeasureMultilineStringStub        func(string, float64) (float64, float64)
+	measureMultilineStringMutex       sync.RWMutex
+	measureMultilineStringArgsForCall []struct {
+		arg1 string
+		arg2 float64
+	}
+	measureMultilineStringReturns struct {
+		result1 float64
+		result2 float64
+	}
+	measureMultilineStringReturnsOnCall map[int]struct {
+		result1 float64
+		result2 float64
+	}
+	MeasureStringStub        func(string) (float64, float64)
+	measureStringMutex       sync.RWMutex
+	measureStringArgsForCall []struct {
+		arg1 string
+	}
+	measureStringReturns struct {
+		result1 float64
+		result2 float64
+	}
+	measureStringReturnsOnCall map[int]struct {
+		result1 float64
+		result2 float64
+	}
 	SetColorStub        func(color.Color)
 	setColorMutex       sync.RWMutex
 	setColorArgsForCall []struct {
@@ -208,6 +235,135 @@ func (fake *FakeContext) LoadFontFaceReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeContext) MeasureMultilineString(arg1 string, arg2 float64) (float64, float64) {
+	fake.measureMultilineStringMutex.Lock()
+	ret, specificReturn := fake.measureMultilineStringReturnsOnCall[len(fake.measureMultilineStringArgsForCall)]
+	fake.measureMultilineStringArgsForCall = append(fake.measureMultilineStringArgsForCall, struct {
+		arg1 string
+		arg2 float64
+	}{arg1, arg2})
+	stub := fake.MeasureMultilineStringStub
+	fakeReturns := fake.measureMultilineStringReturns
+	fake.recordInvocation("MeasureMultilineString", []interface{}{arg1, arg2})
+	fake.measureMultilineStringMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeContext) MeasureMultilineStringCallCount() int {
+	fake.measureMultilineStringMutex.RLock()
+	defer fake.measureMultilineStringMutex.RUnlock()
+	return len(fake.measureMultilineStringArgsForCall)
+}
+
+func (fake *FakeContext) MeasureMultilineStringCalls(stub func(string, float64) (float64, float64)) {
+	fake.measureMultilineStringMutex.Lock()
+	defer fake.measureMultilineStringMutex.Unlock()
+	fake.MeasureMultilineStringStub = stub
+}
+
+func (fake *FakeContext) MeasureMultilineStringArgsForCall(i int) (string, float64) {
+	fake.measureMultilineStringMutex.RLock()
+	defer fake.measureMultilineStringMutex.RUnlock()
+	argsForCall := fake.measureMultilineStringArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeContext) MeasureMultilineStringReturns(result1 float64, result2 float64) {
+	fake.measureMultilineStringMutex.Lock()
+	defer fake.measureMultilineStringMutex.Unlock()
+	fake.MeasureMultilineStringStub = nil
+	fake.measureMultilineStringReturns = struct {
+		result1 float64
+		result2 float64
+	}{result1, result2}
+}
+
+func (fake *FakeContext) MeasureMultilineStringReturnsOnCall(i int, result1 float64, result2 float64) {
+	fake.measureMultilineStringMutex.Lock()
+	defer fake.measureMultilineStringMutex.Unlock()
+	fake.MeasureMultilineStringStub = nil
+	if fake.measureMultilineStringReturnsOnCall == nil {
+		fake.measureMultilineStringReturnsOnCall = make(map[int]struct {
+			result1 float64
+			result2 float64
+		})
+	}
+	fake.measureMultilineStringReturnsOnCall[i] = struct {
+		result1 float64
+		result2 float64
+	}{result1, result2}
+}
+
+func (fake *FakeContext) MeasureString(arg1 string) (float64, float64) {
+	fake.measureStringMutex.Lock()
+	ret, specificReturn := fake.measureStringReturnsOnCall[len(fake.measureStringArgsForCall)]
+	fake.measureStringArgsForCall = append(fake.measureStringArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.MeasureStringStub
+	fakeReturns := fake.measureStringReturns
+	fake.recordInvocation("MeasureString", []interface{}{arg1})
+	fake.measureStringMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeContext) MeasureStringCallCount() int {
+	fake.measureStringMutex.RLock()
+	defer fake.measureStringMutex.RUnlock()
+	return len(fake.measureStringArgsForCall)
+}
+
+func (fake *FakeContext) MeasureStringCalls(stub func(string) (float64, float64)) {
+	fake.measureStringMutex.Lock()
+	defer fake.measureStringMutex.Unlock()
+	fake.MeasureStringStub = stub
+}
+
+func (fake *FakeContext) MeasureStringArgsForCall(i int) string {
+	fake.measureStringMutex.RLock()
+	defer fake.measureStringMutex.RUnlock()
+	argsForCall := fake.measureStringArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeContext) MeasureStringReturns(result1 float64, result2 float64) {
+	fake.measureStringMutex.Lock()
+	defer fake.measureStringMutex.Unlock()
+	fake.MeasureStringStub = nil
+	fake.measureStringReturns = struct {
+		result1 float64
+		result2 float64
+	}{result1, result2}
+}
+
+func (fake *FakeContext) MeasureStringReturnsOnCall(i int, result1 float64, result2 float64) {
+	fake.measureStringMutex.Lock()
+	defer fake.measureStringMutex.Unlock()
+	fake.MeasureStringStub = nil
+	if fake.measureStringReturnsOnCall == nil {
+		fake.measureStringReturnsOnCall = make(map[int]struct {
+			result1 float64
+			result2 float64
+		})
+	}
+	fake.measureStringReturnsOnCall[i] = struct {
+		result1 float64
+		result2 float64
+	}{result1, result2}
+}
+
 func (fake *FakeContext) SetColor(arg1 color.Color) {
 	fake.setColorMutex.Lock()
 	fake.setColorArgsForCall = append(fake.setColorArgsForCall, struct {
@@ -249,6 +405,10 @@ func (fake *FakeContext) Invocations() map[string][][]interface{} {
 	defer fake.imageMutex.RUnlock()
 	fake.loadFontFaceMutex.RLock()
 	defer fake.loadFontFaceMutex.RUnlock()
+	fake.measureMultilineStringMutex.RLock()
+	defer fake.measureMultilineStringMutex.RUnlock()
+	fake.measureStringMutex.RLock()
+	defer fake.measureStringMutex.RUnlock()
 	fake.setColorMutex.RLock()
 	defer fake.setColorMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

@@ -1,0 +1,10 @@
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+directories:
+- path: fonts
+  contents:
+  - path: ubuntu
+    http:
+      url: https://assets.ubuntu.com/v1/0cef8205-ubuntu-font-family-0.83.zip
+      disableUnpack: false
+    newRootPath: ubuntu-font-family-0.83

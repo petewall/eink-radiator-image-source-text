@@ -26,6 +26,7 @@ var _ = Describe("Config", func() {
 		makeBackground  *internalfakes.FakeBackgroundMaker
 		newContext      *internalfakes.FakeContextMaker
 		findFont        *internalfakes.FakeFontFinder
+		textFitter      *internalfakes.FakeTextFitter
 	)
 
 	BeforeEach(func() {
@@ -42,6 +43,10 @@ var _ = Describe("Config", func() {
 		findFont = &internalfakes.FakeFontFinder{}
 		findFont.Returns("/path/to/your/font.ttf", nil)
 		internal.FindFont = findFont.Spy
+
+		textFitter = &internalfakes.FakeTextFitter{}
+		textFitter.Returns(64, nil)
+		internal.FitText = textFitter.Spy
 
 		returnedImage = image.NewRGBA(image.Rect(0, 0, 300, 200))
 		context.ImageReturns(returnedImage)
@@ -99,6 +104,42 @@ var _ = Describe("Config", func() {
 			By("returning the image", func() {
 				Expect(context.ImageCallCount()).To(Equal(1))
 				Expect(img).To(Equal(returnedImage))
+			})
+		})
+
+		Context("font size is set to 0", func() {
+			It("generates an image with the text fit to the size", func() {
+				config := &pkg.Config{
+					Text: "It is now safe to turn off your computer",
+					Font: "charcoal",
+				}
+				_, err := config.GenerateImage(300, 200)
+				Expect(err).ToNot(HaveOccurred())
+
+				By("calling the text fitting code to get the right font size", func() {
+					Expect(textFitter.CallCount()).To(Equal(1))
+					ctx, text, font, width, height := textFitter.ArgsForCall(0)
+					Expect(ctx).To(Equal(context))
+					Expect(text).To(Equal("It is now safe to turn off your computer"))
+					Expect(font).To(Equal("/path/to/your/font.ttf"))
+					Expect(width).To(Equal(300))
+					Expect(height).To(Equal(200))
+				})
+			})
+
+			When("fitting the text fails", func() {
+				BeforeEach(func() {
+					textFitter.Returns(0, errors.New("fit text failed"))
+				})
+				It("returns an error", func() {
+					config := &pkg.Config{
+						Text: "It is now safe to turn off your computer",
+						Font: "charcoal",
+					}
+					_, err := config.GenerateImage(300, 200)
+					Expect(err).To(HaveOccurred())
+					Expect(err.Error()).To(Equal("could not fit font \"charcoal\": fit text failed"))
+				})
 			})
 		})
 
