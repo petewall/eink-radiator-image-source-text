@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"image"
 	"os"
+	"strings"
 
 	"github.com/fogleman/gg"
-	"golang.org/x/image/colornames"
-	"gopkg.in/yaml.v2"
-
 	blank "github.com/petewall/eink-radiator-image-source-blank/pkg"
 	"github.com/petewall/eink-radiator-image-source-text/internal"
+	"golang.org/x/image/colornames"
+	"gopkg.in/yaml.v2"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -25,6 +25,7 @@ type BackgroundType struct {
 
 type Config struct {
 	Text       string         `json:"text" yaml:"text"`
+	Wrap       bool           `json:"wrap" yaml:"wrap"`
 	Color      string         `json:"color" yaml:"color"`
 	Background BackgroundType `json:"background" yaml:"background"`
 	Font       string         `json:"font,omitempty" yaml:"font,omitempty"`
@@ -42,7 +43,7 @@ func (c *Config) GenerateImage(width, height int) (image.Image, error) {
 	}
 
 	if c.Size == 0 {
-		c.Size, err = internal.FitText(context, c.Text, font, width, height)
+		err = c.FitText(context, font, width, height)
 		if err != nil {
 			return nil, fmt.Errorf("could not fit font \"%s\": %w", c.Font, err)
 		}
@@ -52,8 +53,35 @@ func (c *Config) GenerateImage(width, height int) (image.Image, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to set font \"%s\" %.1f: %w", c.Font, c.Size, err)
 	}
-	context.DrawStringWrapped(c.Text, float64(width/2), float64(height/2), 0.5, 0.5, float64(width), 1.0, gg.AlignCenter)
+	context.DrawStringWrapped(c.Text, float64(width/2), float64(height/2), 0.5, 0.5, float64(width), 1, gg.AlignCenter)
 	return context.Image(), nil
+}
+
+func (c *Config) FitText(context internal.Context, font string, width, height int) error {
+	var size float64
+	rawText := c.Text
+	wrappedText := rawText
+	for size = 1; size < 1000; size += 1 {
+		err := context.LoadFontFace(font, size)
+		if err != nil {
+			return fmt.Errorf("failed to load font \"%s\" %.1f: %w", font, size, err)
+		}
+
+		if c.Wrap {
+			c.Text = wrappedText // Save the last wrapped version
+			lines := context.WordWrap(rawText, float64(width))
+			wrappedText = strings.Join(lines, "\n")
+		}
+
+		w, h := context.MeasureMultilineString(wrappedText, 1)
+		// fmt.Printf("Is %.0fx%.0f (%.0f) larger than %dx%d?\n", w, h, size, width, height)
+		if w > float64(width) || h > float64(height) {
+			c.Size = size - 1
+			break
+		}
+	}
+
+	return nil
 }
 
 func (c *Config) Validate() error {

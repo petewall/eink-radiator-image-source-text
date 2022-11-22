@@ -18,6 +18,6 @@ var _ = Describe("Config", func() {
 
 	It("prints a blank config", func() {
 		cmd.ConfigCmd.Run(cmd.ConfigCmd, []string{})
-		Expect(output).Should(Say(`{"text":"","color":"black","background":{"color":"white"}}`))
+		Expect(output).Should(Say(`{"text":"","wrap":false,"color":"black","background":{"color":"white"}}`))
 	})
 })

@@ -40,6 +40,13 @@ ifeq ($(PLATFORM), Linux)
 endif
 	ginkgo -r .
 
+TEST_CONFIGS = $(shell find test/inputs -name "*.yaml" -type f)
+TEST_OUTPUTS = $(TEST_CONFIGS:test/inputs/%.yaml=test/outputs/%.png)
+test-artifacts: build/text $(TEST_OUTPUTS)
+
+test/outputs/%.png: test/inputs/%.yaml
+	./build/text generate --config $? --output test/outputs/$(basename $(shell basename $@)).png --height 300 --width 400
+
 # #### BUILD ####
 .PHONY: build
 SOURCES = $(shell find . -name "*.go" | grep -v "_test\." )

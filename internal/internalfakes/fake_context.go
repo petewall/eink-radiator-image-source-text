@@ -11,6 +11,22 @@ import (
 )
 
 type FakeContext struct {
+	DrawStringStub        func(string, float64, float64)
+	drawStringMutex       sync.RWMutex
+	drawStringArgsForCall []struct {
+		arg1 string
+		arg2 float64
+		arg3 float64
+	}
+	DrawStringAnchoredStub        func(string, float64, float64, float64, float64)
+	drawStringAnchoredMutex       sync.RWMutex
+	drawStringAnchoredArgsForCall []struct {
+		arg1 string
+		arg2 float64
+		arg3 float64
+		arg4 float64
+		arg5 float64
+	}
 	DrawStringWrappedStub        func(string, float64, float64, float64, float64, float64, float64, gg.Align)
 	drawStringWrappedMutex       sync.RWMutex
 	drawStringWrappedArgsForCall []struct {
@@ -77,8 +93,90 @@ type FakeContext struct {
 	setColorArgsForCall []struct {
 		arg1 color.Color
 	}
+	WordWrapStub        func(string, float64) []string
+	wordWrapMutex       sync.RWMutex
+	wordWrapArgsForCall []struct {
+		arg1 string
+		arg2 float64
+	}
+	wordWrapReturns struct {
+		result1 []string
+	}
+	wordWrapReturnsOnCall map[int]struct {
+		result1 []string
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeContext) DrawString(arg1 string, arg2 float64, arg3 float64) {
+	fake.drawStringMutex.Lock()
+	fake.drawStringArgsForCall = append(fake.drawStringArgsForCall, struct {
+		arg1 string
+		arg2 float64
+		arg3 float64
+	}{arg1, arg2, arg3})
+	stub := fake.DrawStringStub
+	fake.recordInvocation("DrawString", []interface{}{arg1, arg2, arg3})
+	fake.drawStringMutex.Unlock()
+	if stub != nil {
+		fake.DrawStringStub(arg1, arg2, arg3)
+	}
+}
+
+func (fake *FakeContext) DrawStringCallCount() int {
+	fake.drawStringMutex.RLock()
+	defer fake.drawStringMutex.RUnlock()
+	return len(fake.drawStringArgsForCall)
+}
+
+func (fake *FakeContext) DrawStringCalls(stub func(string, float64, float64)) {
+	fake.drawStringMutex.Lock()
+	defer fake.drawStringMutex.Unlock()
+	fake.DrawStringStub = stub
+}
+
+func (fake *FakeContext) DrawStringArgsForCall(i int) (string, float64, float64) {
+	fake.drawStringMutex.RLock()
+	defer fake.drawStringMutex.RUnlock()
+	argsForCall := fake.drawStringArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeContext) DrawStringAnchored(arg1 string, arg2 float64, arg3 float64, arg4 float64, arg5 float64) {
+	fake.drawStringAnchoredMutex.Lock()
+	fake.drawStringAnchoredArgsForCall = append(fake.drawStringAnchoredArgsForCall, struct {
+		arg1 string
+		arg2 float64
+		arg3 float64
+		arg4 float64
+		arg5 float64
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.DrawStringAnchoredStub
+	fake.recordInvocation("DrawStringAnchored", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.drawStringAnchoredMutex.Unlock()
+	if stub != nil {
+		fake.DrawStringAnchoredStub(arg1, arg2, arg3, arg4, arg5)
+	}
+}
+
+func (fake *FakeContext) DrawStringAnchoredCallCount() int {
+	fake.drawStringAnchoredMutex.RLock()
+	defer fake.drawStringAnchoredMutex.RUnlock()
+	return len(fake.drawStringAnchoredArgsForCall)
+}
+
+func (fake *FakeContext) DrawStringAnchoredCalls(stub func(string, float64, float64, float64, float64)) {
+	fake.drawStringAnchoredMutex.Lock()
+	defer fake.drawStringAnchoredMutex.Unlock()
+	fake.DrawStringAnchoredStub = stub
+}
+
+func (fake *FakeContext) DrawStringAnchoredArgsForCall(i int) (string, float64, float64, float64, float64) {
+	fake.drawStringAnchoredMutex.RLock()
+	defer fake.drawStringAnchoredMutex.RUnlock()
+	argsForCall := fake.drawStringAnchoredArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
 func (fake *FakeContext) DrawStringWrapped(arg1 string, arg2 float64, arg3 float64, arg4 float64, arg5 float64, arg6 float64, arg7 float64, arg8 gg.Align) {
@@ -396,9 +494,75 @@ func (fake *FakeContext) SetColorArgsForCall(i int) color.Color {
 	return argsForCall.arg1
 }
 
+func (fake *FakeContext) WordWrap(arg1 string, arg2 float64) []string {
+	fake.wordWrapMutex.Lock()
+	ret, specificReturn := fake.wordWrapReturnsOnCall[len(fake.wordWrapArgsForCall)]
+	fake.wordWrapArgsForCall = append(fake.wordWrapArgsForCall, struct {
+		arg1 string
+		arg2 float64
+	}{arg1, arg2})
+	stub := fake.WordWrapStub
+	fakeReturns := fake.wordWrapReturns
+	fake.recordInvocation("WordWrap", []interface{}{arg1, arg2})
+	fake.wordWrapMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeContext) WordWrapCallCount() int {
+	fake.wordWrapMutex.RLock()
+	defer fake.wordWrapMutex.RUnlock()
+	return len(fake.wordWrapArgsForCall)
+}
+
+func (fake *FakeContext) WordWrapCalls(stub func(string, float64) []string) {
+	fake.wordWrapMutex.Lock()
+	defer fake.wordWrapMutex.Unlock()
+	fake.WordWrapStub = stub
+}
+
+func (fake *FakeContext) WordWrapArgsForCall(i int) (string, float64) {
+	fake.wordWrapMutex.RLock()
+	defer fake.wordWrapMutex.RUnlock()
+	argsForCall := fake.wordWrapArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeContext) WordWrapReturns(result1 []string) {
+	fake.wordWrapMutex.Lock()
+	defer fake.wordWrapMutex.Unlock()
+	fake.WordWrapStub = nil
+	fake.wordWrapReturns = struct {
+		result1 []string
+	}{result1}
+}
+
+func (fake *FakeContext) WordWrapReturnsOnCall(i int, result1 []string) {
+	fake.wordWrapMutex.Lock()
+	defer fake.wordWrapMutex.Unlock()
+	fake.WordWrapStub = nil
+	if fake.wordWrapReturnsOnCall == nil {
+		fake.wordWrapReturnsOnCall = make(map[int]struct {
+			result1 []string
+		})
+	}
+	fake.wordWrapReturnsOnCall[i] = struct {
+		result1 []string
+	}{result1}
+}
+
 func (fake *FakeContext) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.drawStringMutex.RLock()
+	defer fake.drawStringMutex.RUnlock()
+	fake.drawStringAnchoredMutex.RLock()
+	defer fake.drawStringAnchoredMutex.RUnlock()
 	fake.drawStringWrappedMutex.RLock()
 	defer fake.drawStringWrappedMutex.RUnlock()
 	fake.imageMutex.RLock()
@@ -411,6 +575,8 @@ func (fake *FakeContext) Invocations() map[string][][]interface{} {
 	defer fake.measureStringMutex.RUnlock()
 	fake.setColorMutex.RLock()
 	defer fake.setColorMutex.RUnlock()
+	fake.wordWrapMutex.RLock()
+	defer fake.wordWrapMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

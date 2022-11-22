@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/fogleman/gg"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"golang.org/x/image/colornames"
@@ -26,7 +25,6 @@ var _ = Describe("Config", func() {
 		makeBackground  *internalfakes.FakeBackgroundMaker
 		newContext      *internalfakes.FakeContextMaker
 		findFont        *internalfakes.FakeFontFinder
-		textFitter      *internalfakes.FakeTextFitter
 	)
 
 	BeforeEach(func() {
@@ -43,10 +41,6 @@ var _ = Describe("Config", func() {
 		findFont = &internalfakes.FakeFontFinder{}
 		findFont.Returns("/path/to/your/font.ttf", nil)
 		internal.FindFont = findFont.Spy
-
-		textFitter = &internalfakes.FakeTextFitter{}
-		textFitter.Returns(64, nil)
-		internal.FitText = textFitter.Spy
 
 		returnedImage = image.NewRGBA(image.Rect(0, 0, 300, 200))
 		context.ImageReturns(returnedImage)
@@ -108,28 +102,29 @@ var _ = Describe("Config", func() {
 		})
 
 		Context("font size is set to 0", func() {
+			BeforeEach(func() {
+				context.LoadFontFaceReturns(nil)
+				context.MeasureMultilineStringReturnsOnCall(0, 299, 199)
+				context.MeasureMultilineStringReturnsOnCall(1, 300, 200)
+				context.MeasureMultilineStringReturnsOnCall(2, 301, 201)
+			})
 			It("generates an image with the text fit to the size", func() {
 				config := &pkg.Config{
 					Text: "It is now safe to turn off your computer",
 					Font: "charcoal",
+					Size: 0,
 				}
 				_, err := config.GenerateImage(300, 200)
 				Expect(err).ToNot(HaveOccurred())
 
 				By("calling the text fitting code to get the right font size", func() {
-					Expect(textFitter.CallCount()).To(Equal(1))
-					ctx, text, font, width, height := textFitter.ArgsForCall(0)
-					Expect(ctx).To(Equal(context))
-					Expect(text).To(Equal("It is now safe to turn off your computer"))
-					Expect(font).To(Equal("/path/to/your/font.ttf"))
-					Expect(width).To(Equal(300))
-					Expect(height).To(Equal(200))
+					Expect(config.Size).To(BeNumerically(">", 0.0))
 				})
 			})
 
 			When("fitting the text fails", func() {
 				BeforeEach(func() {
-					textFitter.Returns(0, errors.New("fit text failed"))
+					context.LoadFontFaceReturns(errors.New("FitText failed"))
 				})
 				It("returns an error", func() {
 					config := &pkg.Config{
@@ -138,7 +133,7 @@ var _ = Describe("Config", func() {
 					}
 					_, err := config.GenerateImage(300, 200)
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(Equal("could not fit font \"charcoal\": fit text failed"))
+					Expect(err.Error()).To(ContainSubstring("could not fit font \"charcoal\":"))
 				})
 			})
 		})
@@ -180,6 +175,98 @@ var _ = Describe("Config", func() {
 				_, err := config.GenerateImage(300, 200)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("failed to set font \"comic sans\" 128.0: load font face failed"))
+			})
+		})
+	})
+
+	Describe("FitText", func() {
+		BeforeEach(func() {
+			context.LoadFontFaceReturns(nil)
+			context.MeasureMultilineStringReturnsOnCall(0, 99, 99)
+			context.MeasureMultilineStringReturnsOnCall(1, 100, 100)
+			context.MeasureMultilineStringReturnsOnCall(2, 101, 101)
+		})
+
+		It("sets the size of the font based on measuring", func() {
+			config := &pkg.Config{
+				Text: "It is now safe to turn off your computer",
+				Font: "chicago",
+			}
+			err := config.FitText(context, "/path/to/chicago", 100, 100)
+			Expect(err).ToNot(HaveOccurred())
+
+			By("checking each size until its greater than the size", func() {
+				Expect(context.MeasureMultilineStringCallCount()).To(Equal(3))
+
+				text, lineSpacing := context.MeasureMultilineStringArgsForCall(0)
+				Expect(text).To(Equal("It is now safe to turn off your computer"))
+				Expect(lineSpacing).To(Equal(1.0))
+				text, lineSpacing = context.MeasureMultilineStringArgsForCall(1)
+				Expect(text).To(Equal("It is now safe to turn off your computer"))
+				Expect(lineSpacing).To(Equal(1.0))
+				text, lineSpacing = context.MeasureMultilineStringArgsForCall(2)
+				Expect(text).To(Equal("It is now safe to turn off your computer"))
+				Expect(lineSpacing).To(Equal(1.0))
+			})
+
+			By("setting the size to the biggest that fits", func() {
+				Expect(config.Size).To(Equal(2.0))
+			})
+		})
+
+		When("loading the font fails", func() {
+			BeforeEach(func() {
+				context.LoadFontFaceReturns(errors.New("load font face failed"))
+			})
+
+			It("returns an error", func() {
+				config := &pkg.Config{
+					Text: "It is now safe to turn off your computer",
+					Font: "chicago",
+				}
+				err := config.FitText(context, "/path/to/chicago", 100, 100)
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("failed to load font \"/path/to/chicago\" 1.0: load font face failed"))
+			})
+		})
+
+		Context("word wrapping is enabled", func() {
+			BeforeEach(func() {
+				context.WordWrapReturnsOnCall(0, []string{"It is now safe to turn off your computer"})
+				context.WordWrapReturnsOnCall(1, []string{"It is now safe to turn off", "your computer"})
+				context.WordWrapReturnsOnCall(2, []string{"It is now safe to", "turn off your computer"})
+			})
+
+			It("sets the size and wrapped text", func() {
+				config := &pkg.Config{
+					Text: "It is now safe to turn off your computer",
+					Font: "chicago",
+					Wrap: true,
+				}
+				err := config.FitText(context, "/path/to/chicago", 100, 100)
+				Expect(err).ToNot(HaveOccurred())
+
+				By("rebuilding word wrapping each time", func() {
+					Expect(context.MeasureMultilineStringCallCount()).To(Equal(3))
+
+					text, lineSpacing := context.MeasureMultilineStringArgsForCall(0)
+					Expect(text).To(Equal("It is now safe to turn off your computer"))
+					Expect(lineSpacing).To(Equal(1.0))
+					text, lineSpacing = context.MeasureMultilineStringArgsForCall(1)
+					Expect(text).To(Equal("It is now safe to turn off\nyour computer"))
+					Expect(lineSpacing).To(Equal(1.0))
+					text, lineSpacing = context.MeasureMultilineStringArgsForCall(2)
+					Expect(text).To(Equal("It is now safe to\nturn off your computer"))
+					Expect(lineSpacing).To(Equal(1.0))
+				})
+
+				By("setting the size to the biggest that fits", func() {
+					Expect(config.Size).To(Equal(2.0))
+				})
+
+				By("setting the text to the version with word wrapping", func() {
+					Expect(config.Text).To(Equal("It is now safe to turn off\nyour computer"))
+				})
 			})
 		})
 	})
