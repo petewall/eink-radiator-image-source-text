@@ -10,10 +10,10 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
 	github.com/onsi/ginkgo/v2 v2.10.0
 	github.com/onsi/gomega v1.27.8
-	github.com/petewall/eink-radiator-image-source-blank v0.1.50
+	github.com/petewall/eink-radiator-image-source-blank v0.1.51
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
-	golang.org/x/image v0.7.0
+	golang.org/x/image v0.8.0
 	golang.org/x/tools v0.9.3
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -42,7 +42,7 @@ require (
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/text v0.10.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
